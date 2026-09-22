@@ -1,0 +1,69 @@
+name: Build Copilot AI MVP
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure core
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCOPILOT_BUILD_PLUGIN=OFF
+
+      - name: Build core
+        run: cmake --build build --config Release --parallel
+
+      - name: Upload core
+        uses: actions/upload-artifact@v4
+        with:
+          name: CopilotCore-${{ runner.os }}
+          path: |
+            build/**/CopilotCore
+            build/**/CopilotCore.exe
+
+  plugin-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download X-Plane SDK 4.3.0
+        shell: pwsh
+        run: |
+          Invoke-WebRequest `
+            -Uri "https://developer.x-plane.com/wp-content/plugins/code-sample-generation/sdk_zip_files/XPSDK430.zip" `
+            -OutFile "xpsdk.zip"
+          Expand-Archive -Path "xpsdk.zip" -DestinationPath "xpsdk"
+
+      - name: Configure plugin + core
+        shell: pwsh
+        run: |
+          cmake -S . -B build `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCOPILOT_BUILD_PLUGIN=ON `
+            -DXPLANE_SDK="$env:GITHUB_WORKSPACE/xpsdk/SDK"
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Upload Windows plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: CopilotAI-XPlane-Windows
+          path: |
+            build/**/*.xpl
+            build/**/CopilotCore.exe
