@@ -1,0 +1,21 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "core-release",
+      "displayName": "CopilotCore Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/core-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "COPILOT_BUILD_PLUGIN": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "core-release",
+      "configurePreset": "core-release"
+    }
+  ]
+}
