@@ -1,0 +1,10 @@
+build/
+.vs/
+.idea/
+*.user
+*.pdb
+*.obj
+*.ilk
+*.log
+models/
+training/audio/
